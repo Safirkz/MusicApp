@@ -7,7 +7,7 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 1) {
     exit();
 }
 
-include("../config/conexion.php");
+include("../src/config/conexion.php");
 
 // Recibimos el nombre del género desde el formulario
 $nombre = $_POST['nombre_genero'] ?? null;

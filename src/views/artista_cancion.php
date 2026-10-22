@@ -15,7 +15,7 @@ if (!isset($_GET['id'])) {
     exit();
 }
 
-include("../config/conexion.php");
+include("../src/config/conexion.php");
 include("../partials/header.php");
 
 $id_cancion = $_GET['id'];

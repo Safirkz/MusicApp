@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-include("../config/conexion.php");
+include("../src/config/conexion.php");
 
 // ==========================================
 // VALIDAR SESIÓN

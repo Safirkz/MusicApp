@@ -1,6 +1,6 @@
 <?php
 // Incluimos la conexión
-include("../config/conexion.php");
+include("../src/config/conexion.php");
 
 // Recibimos los datos del formulario (registro.php)
 $nombre = $_POST['nombre'];

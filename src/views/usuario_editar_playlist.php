@@ -8,7 +8,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit();
 }
 
-include("../config/conexion.php");
+include("../src/config/conexion.php");
 include("../partials/header.php");
 
 // Validar ID
