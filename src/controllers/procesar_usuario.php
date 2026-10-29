@@ -7,7 +7,7 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 1) {
     exit();
 }
 
-include("../src/config/conexion.php");
+include("../config/conexion.php");
 
 // Recibimos los datos del formulario (los inputs hidden)
 $id_usuario = $_POST['id_usuario'] ?? null;

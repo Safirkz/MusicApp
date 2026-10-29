@@ -9,7 +9,7 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 3) {
     exit();
 }
 
-include("../src/config/conexion.php");
+include("../config/conexion.php");
 include("../partials/header.php");
 
 // ==========================================
@@ -204,3 +204,4 @@ while ($row = sqlsrv_fetch_array($stmtAlbumes, SQLSRV_FETCH_ASSOC)) {
     </div>
 </div>
 <?php include("../partials/footer.php"); ?>
+

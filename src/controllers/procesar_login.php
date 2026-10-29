@@ -4,7 +4,7 @@
 session_start();
 
 // Conexión BD
-include("../src/config/conexion.php");
+include("../config/conexion.php");
 
 // Datos formulario
 $email = $_POST['email'];

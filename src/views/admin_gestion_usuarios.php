@@ -7,7 +7,7 @@ if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 1) {
     exit();
 }
 
-include("../src/config/conexion.php");
+include("../config/conexion.php");
 include("../partials/header.php");
 
 // Obtener búsqueda

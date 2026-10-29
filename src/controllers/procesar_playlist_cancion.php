@@ -11,7 +11,7 @@ if (!isset($_SESSION['id_usuario'])) {
     exit();
 }
 
-include("../src/config/conexion.php");
+include("../config/conexion.php");
 
 // ==========================================
 // DATOS
