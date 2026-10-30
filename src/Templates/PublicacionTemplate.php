@@ -1,42 +1,37 @@
 <?php
+require_once __DIR__ . '/../Utils/FileSystemHandler.php';
+require_once __DIR__ . '/../Repositories/ArtistaRepository.php';
+require_once __DIR__ . '/../config/conexion.php';
 
 abstract class PublicacionTemplate {
-    protected $repo;
     protected $fileHandler;
+    protected $artistaRepo;
 
-    public function __construct($repo, $fileHandler) {
-        $this->repo = $repo;
-        $this->fileHandler = $fileHandler;
+    public function __construct(FileSystemHandler $fileHandler = null, ArtistaRepository $artistaRepo = null) {
+        global $conn;
+        
+        $this->fileHandler = $fileHandler ?? new FileSystemHandler();
+        $this->artistaRepo = $artistaRepo ?? new ArtistaRepository($conn);
     }
 
     /**
-     * El "Método Plantilla" que fija el algoritmo general de procesamiento.
-     * Se marca como final para evitar que las subclases alteren la secuencia.
+     * Convierte la cadena "HH:MM:SS" o "MM:SS" a segundos enteros
      */
-    public final function procesar() {
-        $this->validarSesion();
-        $datos = $this->extraerDatos();
-        $archivosGuardados = $this->procesarArchivos($datos);
-        $resultado = $this->guardarEnBaseDatos($datos, $archivosGuardados);
-        $this->redireccionar($resultado, $datos);
-    }
-
-    /**
-     * Paso común: Validación de sesión activa
-     */
-    protected function validarSesion() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+    protected function convertirAEnteroSegundos($duracion) {
+        if (is_numeric($duracion)) {
+            return (int)$duracion;
         }
-        if (!isset($_SESSION['id_usuario'])) {
-            header("Location: ../index.php");
-            exit();
-        }
-    }
 
-    // Pasos específicos que debe definir cada subclase concreta
-    abstract protected function extraerDatos();
-    abstract protected function procesarArchivos($datos);
-    abstract protected function guardarEnBaseDatos($datos, $archivosGuardados);
-    abstract protected function redireccionar($resultado, $datos);
+        $partes = array_reverse(explode(':', $duracion));
+        $segundos = 0;
+        $multiplicadores = [1, 60, 3600];
+
+        foreach ($partes as $i => $val) {
+            if (isset($multiplicadores[$i])) {
+                $segundos += (int)$val * $multiplicadores[$i];
+            }
+        }
+
+        return $segundos;
+    }
 }

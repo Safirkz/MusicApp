@@ -1,94 +1,108 @@
 <?php
 
 class ArtistaRepository {
-    private $conn; // Recurso de conexión de sqlsrv
+    private $conn;
 
     public function __construct($conn) {
         $this->conn = $conn;
     }
 
     /**
-     * Crear un álbum invocando el procedimiento almacenado sp_CrearAlbum
+     * Consulta el ID del artista por su ID de usuario.
      */
-    public function crearAlbum($titulo, $fechaLanzamiento, $idArtista, $tipo, $nombreImagen) {
-        $sql = "EXEC sp_CrearAlbum ?, ?, ?, ?, ?";
-        $params = array($titulo, $fechaLanzamiento, $idArtista, $tipo, $nombreImagen);
-        
+    public function obtenerArtistaPorUsuario($idUsuario) {
+        $sql = "EXEC sp_ObtenerArtistaPorUsuario ?";
+        $params = array((int)$idUsuario);
         $stmt = sqlsrv_query($this->conn, $sql, $params);
-        if (!$stmt) {
+
+        if ($stmt === false) {
+            throw new Exception("Error al consultar artista: " . print_r(sqlsrv_errors(), true));
+        }
+
+        $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+        sqlsrv_free_stmt($stmt);
+
+        return $row['id_artista'] ?? null;
+    }
+
+    /**
+     * Registra un álbum en SQL Server.
+     * SP: 1. @titulo, 2. @fecha_lanzamiento, 3. @id_artista, 4. @tipo, 5. @imagen_url
+     */
+    public function crearAlbum($titulo, $fechaLanzamiento, $idArtista, $tipo, $imagenUrl) {
+        $sql = "EXEC sp_CrearAlbum ?, ?, ?, ?, ?";
+        
+        $tipoNormalizado = strtolower(trim($tipo ?? ''));
+        if (!in_array($tipoNormalizado, ['album', 'sencillo'])) {
+            $tipoNormalizado = 'album';
+        }
+
+        $params = array(
+            $titulo,
+            $fechaLanzamiento,
+            (int)$idArtista,
+            $tipoNormalizado,
+            $imagenUrl
+        );
+
+        $stmt = sqlsrv_query($this->conn, $sql, $params);
+
+        if ($stmt === false) {
             throw new Exception("Error al crear álbum: " . print_r(sqlsrv_errors(), true));
         }
+
+        sqlsrv_free_stmt($stmt);
         return true;
     }
 
     /**
-     * Consultar la imagen actual del perfil de un artista
+     * Registra una canción en SQL Server.
+     * SP: 1. @titulo, 2. @duracion, 3. @id_album, 4. @id_artista, 5. @archivo_url, 6. @imagen_url
      */
-    public function obtenerImagenArtista($idArtista) {
-        $sql = "SELECT imagen_url FROM Artista WHERE id_artista = ?";
-        $params = array($idArtista);
-        
-        $stmt = sqlsrv_query($this->conn, $sql, $params);
-        if ($stmt && $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-            return $row['imagen_url'];
-        }
-        return null;
-    }
-
-    /**
-     * Actualizar perfil de artista invocando sp_ActualizarPerfilArtista
-     */
-    public function actualizarPerfilArtista($idArtista, $nombreArtistico, $nacionalidad, $descripcion, $nombreImagen) {
-        $sql = "EXEC sp_ActualizarPerfilArtista ?, ?, ?, ?, ?";
-        $params = array($idArtista, $nombreArtistico, $nacionalidad, $descripcion, $nombreImagen);
-        
-        $stmt = sqlsrv_query($this->conn, $sql, $params);
-        if (!$stmt) {
-            throw new Exception("Error al actualizar perfil: " . print_r(sqlsrv_errors(), true));
-        }
-        return true;
-    }
-
-    /**
-     * Activar o inactivar una canción
-     */
-    public function cambiarEstadoCancion($idCancion, $activo) {
-        $sql = "UPDATE Cancion SET activo = ? WHERE id_cancion = ?";
-        $params = array($activo, $idCancion);
-        
-        $stmt = sqlsrv_query($this->conn, $sql, $params);
-        if (!$stmt) {
-            throw new Exception("Error al cambiar estado de la canción: " . print_r(sqlsrv_errors(), true));
-        }
-        return true;
-    }
-
-    /**
-     * Eliminar físicamente una canción de la BD
-     */
-    public function eliminarCancion($idCancion) {
-        $sql = "DELETE FROM Cancion WHERE id_cancion = ?";
-        $params = array($idCancion);
-        
-        $stmt = sqlsrv_query($this->conn, $sql, $params);
-        if (!$stmt) {
-            throw new Exception("Error al eliminar la canción: " . print_r(sqlsrv_errors(), true));
-        }
-        return true;
-    }
-
-    /**
-     * Crear una canción o sencillo invocando sp_CrearCancion
-     */
-    public function crearCancion($titulo, $duracion, $idAlbum, $idArtista, $nombreAudio, $nombreImagen) {
+    public function crearCancion($titulo, $duracion, $idAlbum, $idArtista, $archivoUrl, $imagenUrl) {
         $sql = "EXEC sp_CrearCancion ?, ?, ?, ?, ?, ?";
-        $params = array($titulo, $duracion, $idAlbum, $idArtista, $nombreAudio, $nombreImagen);
         
+        $duracionVal  = (int)$duracion;
+        $idArtistaVal = (int)$idArtista;
+        $idAlbumVal   = ($idAlbum !== null && $idAlbum !== '' && $idAlbum !== 0) ? (int)$idAlbum : null;
+
+        $params = array(
+            $titulo,
+            $duracionVal,
+            $idAlbumVal,
+            $idArtistaVal,
+            $archivoUrl,
+            $imagenUrl
+        );
+
         $stmt = sqlsrv_query($this->conn, $sql, $params);
-        if (!$stmt) {
-            throw new Exception("Error al crear la canción: " . print_r(sqlsrv_errors(), true));
+
+        if ($stmt === false) {
+            throw new Exception("Error al crear canción: " . print_r(sqlsrv_errors(), true));
         }
+
+        sqlsrv_free_stmt($stmt);
         return true;
+    }
+
+    /**
+     * Obtiene los álbumes activos de un artista para alimentar el <select>.
+     */
+    public function obtenerAlbumsPorArtista($idArtista) {
+        $sql = "SELECT id_album, titulo FROM Album WHERE id_artista = ? AND activo = 1";
+        $params = array((int)$idArtista);
+        $stmt = sqlsrv_query($this->conn, $sql, $params);
+
+        if ($stmt === false) {
+            return [];
+        }
+
+        $albums = [];
+        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            $albums[] = $row;
+        }
+
+        sqlsrv_free_stmt($stmt);
+        return $albums;
     }
 }
-

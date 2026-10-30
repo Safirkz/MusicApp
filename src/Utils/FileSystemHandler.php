@@ -3,52 +3,69 @@
 class FileSystemHandler {
     private $baseDir;
 
-    public function __construct() {
-        // Ruta relativa hacia la carpeta de recursos desde src/Utils/
-        $this->baseDir = __DIR__ . '/../../resources/';
+    public function __construct($baseDir = null) {
+        // Apunta por defecto a la carpeta resources en la raíz de la aplicación
+        $this->baseDir = $baseDir ?? __DIR__ . '/../../resources/';
     }
 
     /**
-     * Subir imagen de álbum a la carpeta /resources/img/albums/
+     * Guarda archivos .mp3 en resources/audio/
      */
-    public function guardarImagenAlbum($fileTmp, $nombreArchivo) {
-        if (empty($nombreArchivo) || empty($fileTmp)) {
-            return null;
-        }
-        $destino = $this->baseDir . "img/albums/" . $nombreArchivo;
-        return move_uploaded_file($fileTmp, $destino) ? $nombreArchivo : null;
+    public function guardarAudio(array $file) {
+        return $this->moverArchivo($file, $this->baseDir . 'audio/');
     }
 
     /**
-     * Subir imagen de perfil a la carpeta /resources/img/artistas/
+     * Guarda portadas en resources/img/albums/
      */
-    public function guardarImagenArtista($fileTmp, $nombreArchivo) {
-        if (empty($nombreArchivo) || empty($fileTmp)) {
-            return null;
-        }
-        $destino = $this->baseDir . "img/artistas/" . $nombreArchivo;
-        return move_uploaded_file($fileTmp, $destino) ? $nombreArchivo : null;
+    public function guardarPortadaAlbum(array $file) {
+        return $this->moverArchivo($file, $this->baseDir . 'img/albums/');
     }
 
     /**
-     * Subir portada de canción a la carpeta /resources/img/canciones/
+     * Guarda fotos en resources/img/artistas/
      */
-    public function guardarImagenCancion($fileTmp, $nombreArchivo) {
-        if (empty($nombreArchivo) || empty($fileTmp)) {
-            return null;
-        }
-        $destino = $this->baseDir . "img/canciones/" . $nombreArchivo;
-        return move_uploaded_file($fileTmp, $destino) ? $nombreArchivo : null;
+    public function guardarFotoArtista(array $file) {
+        return $this->moverArchivo($file, $this->baseDir . 'img/artistas/');
     }
 
     /**
-     * Subir pista de audio a la carpeta /resources/audio/
+     * Guarda portadas en resources/img/canciones/
      */
-    public function guardarAudioCancion($fileTmp, $nombreArchivo) {
-        if (empty($nombreArchivo) || empty($fileTmp)) {
-            return null;
+    public function guardarPortadaCancion(array $file) {
+        return $this->moverArchivo($file, $this->baseDir . 'img/canciones/');
+    }
+
+    /**
+     * Guarda portadas en resources/img/playlists/
+     */
+    public function guardarPortadaPlaylist(array $file) {
+        return $this->moverArchivo($file, $this->baseDir . 'img/playlists/');
+    }
+
+    /**
+     * Mueve el archivo a la ubicación final conservando el nombre original
+     */
+    private function moverArchivo(array $file, string $destinoDir) {
+        if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception("Error al cargar el archivo en PHP (Código: " . ($file['error'] ?? 'desconocido') . ")");
         }
-        $destino = $this->baseDir . "audio/" . $nombreArchivo;
-        return move_uploaded_file($fileTmp, $destino) ? $nombreArchivo : null;
+
+        $nombreOriginal = basename($file['name']);
+        $rutaTemporal   = $file['tmp_name'];
+
+        if (!is_dir($destinoDir)) {
+            if (!mkdir($destinoDir, 0777, true)) {
+                throw new Exception("No se pudo crear la carpeta destino: $destinoDir");
+            }
+        }
+
+        $rutaDestino = $destinoDir . $nombreOriginal;
+
+        if (move_uploaded_file($rutaTemporal, $rutaDestino)) {
+            return $nombreOriginal;
+        }
+
+        throw new Exception("No se pudo mover el archivo desde la carpeta temporal a $rutaDestino");
     }
 }
