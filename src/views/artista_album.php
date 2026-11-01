@@ -3,105 +3,50 @@ session_start();
 
 // Validar que solo artistas puedan entrar aquí
 if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 3) {
-
     header("Location: ../index.php");
-
     exit();
 }
 
 include("../config/conexion.php");
+require_once __DIR__ . '/../facades/ArtistaFacade.php';
 include("../partials/header.php");
 
 // Validar ID
 if (!isset($_GET['id'])) {
-
     header("Location: artista_gestion_catalogo.php");
-
     exit();
 }
 
 $id_album = $_GET['id'];
+$id_usuario = $_SESSION['id_usuario'];
+
+$facade = new ArtistaFacade($conn);
 
 // ==========================================
 // OBTENER ARTISTA LOGUEADO
 // ==========================================
-
-$id_usuario = $_SESSION['id_usuario'];
-
-$sqlArtista = "EXEC sp_ObtenerArtistaPorUsuario ?";
-
-$paramsArtista = array($id_usuario);
-
-$stmtArtista = sqlsrv_query($conn, $sqlArtista, $paramsArtista);
-
-$artista = sqlsrv_fetch_array($stmtArtista, SQLSRV_FETCH_ASSOC);
+$artista = $facade->obtenerArtistaPorUsuario($id_usuario);
 
 // ==========================================
-// OBTENER ÁLBUM
+// OBTENER ÁLBUM VÍA FACADE
 // ==========================================
+$album = $facade->obtenerAlbumPorId($id_album);
 
-$sqlAlbum = "
-SELECT
-    al.*,
-    a.nombre_artistico
-FROM Album al
-INNER JOIN Artista a
-    ON al.id_artista = a.id_artista
-WHERE al.id_album = ?
-AND al.id_artista = ?
-";
-
-$paramsAlbum = array(
-    $id_album,
-    $artista['id_artista']
-);
-
-$stmtAlbum = sqlsrv_query($conn, $sqlAlbum, $paramsAlbum);
-
-$album = sqlsrv_fetch_array($stmtAlbum, SQLSRV_FETCH_ASSOC);
-
-// Validar propiedad
-if (!$album) {
-
+// Validar propiedad del álbum
+if (!$album || $album['id_artista'] != $artista['id_artista']) {
     echo "
     <div class='alert alert-danger'>
         No tienes acceso a este álbum.
     </div>
     ";
-
     include("../partials/footer.php");
-
     exit();
 }
 
 // ==========================================
-// OBTENER CANCIONES DEL ÁLBUM
+// OBTENER CANCIONES DEL ÁLBUM VÍA FACADE
 // ==========================================
-
-$sqlCanciones = "
-SELECT
-    id_cancion,
-    titulo,
-    duracion,
-    archivo_url,
-    imagen_url,
-    activo
-FROM Cancion
-WHERE id_album = ?
-ORDER BY fecha_subida DESC
-";
-
-$paramsCanciones = array($id_album);
-
-$stmtCanciones = sqlsrv_query($conn, $sqlCanciones, $paramsCanciones);
-
-$canciones = array();
-
-while ($row = sqlsrv_fetch_array($stmtCanciones, SQLSRV_FETCH_ASSOC)) {
-
-    $canciones[] = $row;
-}
-
+$canciones = $facade->obtenerCancionesAlbum($id_album);
 ?>
 <div class="row mb-4">
     <div class="col-md-10">
@@ -161,7 +106,7 @@ while ($row = sqlsrv_fetch_array($stmtCanciones, SQLSRV_FETCH_ASSOC)) {
                     <a href="artista_subir_cancion.php?id_album=<?php echo $album['id_album']; ?>" class="btn btn-primary">
                         Subir Canción
                     </a>
-                    <form action="../controllers/procesar_album.php" method="POST">
+                    <form action="../controllers/AlbumController.php" method="POST">
                         <input
                             type="hidden"
                             name="id_album"

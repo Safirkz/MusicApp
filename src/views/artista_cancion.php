@@ -3,82 +3,67 @@ session_start();
 
 // Validar que solo artistas puedan entrar aquí
 if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 3) {
-
     header("Location: ../index.php");
     exit();
 }
 
 // Validar que llegue el ID
 if (!isset($_GET['id'])) {
-
     header("Location: artista_gestion_catalogo.php");
     exit();
 }
 
 include("../config/conexion.php");
+require_once __DIR__ . '/../facades/ArtistaFacade.php';
 include("../partials/header.php");
 
 $id_cancion = $_GET['id'];
 $id_usuario = $_SESSION['id_usuario'];
 
-// ==========================================
-// OBTENER DATOS DE LA CANCIÓN
-// ==========================================
+$facade = new ArtistaFacade($conn);
 
-$sql = "EXEC sp_ObtenerCancionPorId ?";
-$params = array($id_cancion);
-$stmt = sqlsrv_query($conn, $sql, $params);
+// ==========================================
+// OBTENER DATOS DE LA CANCIÓN VÍA FACADE
+// ==========================================
+$cancion = $facade->obtenerCancionPorId($id_cancion);
 
 // Validar existencia
-if (!$stmt || !($cancion = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC))) {
-
+if (!$cancion) {
     echo "
     <div class='alert alert-danger'>
         La canción no existe.
     </div>
     ";
-
     include("../partials/footer.php");
     exit();
 }
 
 // ==========================================
-// VALIDAR QUE LA CANCIÓN PERTENEZCA
-// AL ARTISTA LOGUEADO
+// VALIDAR ARTISTA LOGUEADO Y PROPIEDAD
 // ==========================================
+$artista = $facade->obtenerArtistaPorUsuario($id_usuario);
 
-$sqlArtista = "EXEC sp_ObtenerArtistaPorUsuario ?";
-$paramsArtista = array($id_usuario);
-$stmtArtista = sqlsrv_query($conn, $sqlArtista, $paramsArtista);
-$artista = sqlsrv_fetch_array($stmtArtista, SQLSRV_FETCH_ASSOC);
-
-// Validar artista
 if (!$artista) {
-
     echo "
     <div class='alert alert-danger'>
         No se encontró el perfil del artista.
     </div>
     ";
-
     include("../partials/footer.php");
     exit();
 }
 
-// Validar propiedad
 if ($cancion['id_artista'] != $artista['id_artista']) {
-
     echo "
     <div class='alert alert-danger'>
         No tienes permiso para gestionar esta canción.
     </div>
     ";
-
     include("../partials/footer.php");
     exit();
 }
-
 ?>
+
 <div class="row mb-4">
     <div class="col-md-10">
         <h2>
@@ -171,7 +156,7 @@ if ($cancion['id_artista'] != $artista['id_artista']) {
                     <?php if ($cancion['activo'] == 1) { ?>
                         <!-- Inactivar -->
                         <form
-                            action="../controllers/procesar_cancion_artista.php"
+                            action="../controllers/CancionController.php"
                             method="POST"
                             class="d-inline">
                             <input
@@ -194,7 +179,7 @@ if ($cancion['id_artista'] != $artista['id_artista']) {
 
                         <!-- Activar -->
                         <form
-                            action="../controllers/procesar_cancion_artista.php"
+                            action="../controllers/CancionController.php"
                             method="POST"
                             class="d-inline">
                             <input
@@ -215,7 +200,7 @@ if ($cancion['id_artista'] != $artista['id_artista']) {
 
                     <!-- Eliminar -->
                     <form
-                        action="../controllers/procesar_cancion_artista.php"
+                        action="../controllers/CancionController.php"
                         method="POST"
                         class="d-inline">
                         <input

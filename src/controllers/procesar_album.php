@@ -1,4 +1,5 @@
 <?php
+/*
 session_start();
 
 // Validar que solo el Administrador pueda ejecutar acciones

@@ -1,4 +1,5 @@
 <?php
+/*
 session_start();
 
 // Validar que solo el Administrador pueda ejecutar acciones
@@ -82,4 +83,5 @@ if ($accion == "eliminar") {
     header("Location: ../admin/admin_gestion_catalogo.php?filtro=cancion&msg=eliminada");
     exit();
 }
+    */
 ?>

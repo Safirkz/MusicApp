@@ -1,4 +1,5 @@
 <?php
+/*
 session_start();
 
 include("../config/conexion.php");
@@ -68,4 +69,5 @@ if ($_POST['accion'] == "crear_album") {
         die(print_r(sqlsrv_errors(), true));
     }
 }
+*/
 ?>

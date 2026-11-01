@@ -3,107 +3,46 @@ session_start();
 
 // Validar que solo artistas puedan entrar aquí
 if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 3) {
-
     header("Location: ../index.php");
-
     exit();
 }
 
 include("../config/conexion.php");
+require_once __DIR__ . '/../facades/ArtistaFacade.php';
 include("../partials/header.php");
+
+$facade = new ArtistaFacade($conn);
 
 // ==========================================
 // OBTENER ARTISTA DEL USUARIO LOGUEADO
 // ==========================================
-
 $id_usuario = $_SESSION['id_usuario'];
-
-$sqlArtista = "EXEC sp_ObtenerArtistaPorUsuario ?";
-
-$paramsArtista = array($id_usuario);
-
-$stmtArtista = sqlsrv_query($conn, $sqlArtista, $paramsArtista);
-
-$artista = sqlsrv_fetch_array($stmtArtista, SQLSRV_FETCH_ASSOC);
+$artista = $facade->obtenerArtistaPorUsuario($id_usuario);
 
 // Validar que exista perfil de artista
 if (!$artista) {
-
     echo "<div class='alert alert-danger'>
             No se encontró el perfil del artista.
           </div>";
-
     include("../partials/footer.php");
-
     exit();
 }
 
 $id_artista = $artista['id_artista'];
 
 // ==========================================
-// OBTENER ÁLBUMES DEL ARTISTA
+// OBTENER ÁLBUMES Y SENCILLOS VÍA FACADE
 // ==========================================
-
-$sqlAlbumes = "
-SELECT
-    id_album,
-    titulo,
-    fecha_lanzamiento,
-    imagen_url,
-    activo
-FROM Album
-WHERE id_artista = ?
-AND tipo = 'album'
-ORDER BY fecha_lanzamiento DESC
-";
-
-$paramsAlbumes = array($id_artista);
-
-$stmtAlbumes = sqlsrv_query($conn, $sqlAlbumes, $paramsAlbumes);
-
-$albumes = array();
-
-while ($row = sqlsrv_fetch_array($stmtAlbumes, SQLSRV_FETCH_ASSOC)) {
-
-    $albumes[] = $row;
-}
-
-// ==========================================
-// OBTENER SENCILLOS
-// ==========================================
-
-$sqlSencillos = "
-SELECT
-    id_cancion,
-    titulo,
-    duracion,
-    archivo_url,
-    imagen_url,
-    activo
-FROM Cancion
-WHERE id_artista = ?
-AND id_album IS NULL
-ORDER BY fecha_subida DESC
-";
-
-$paramsSencillos = array($id_artista);
-
-$stmtSencillos = sqlsrv_query($conn, $sqlSencillos, $paramsSencillos);
-
-$sencillos = array();
-
-while ($row = sqlsrv_fetch_array($stmtSencillos, SQLSRV_FETCH_ASSOC)) {
-
-    $sencillos[] = $row;
-}
+$albumes   = $facade->obtenerAlbumesArtista($id_artista);
+$sencillos = $facade->obtenerSencillosArtista($id_artista);
 
 // ==========================================
 // ESTADÍSTICAS
 // ==========================================
-$total_albumes = count($albumes);
+$total_albumes   = count($albumes);
 $total_sencillos = count($sencillos);
-
 ?>
+
 <div class="row mb-4">
     <div class="col-md-8">
         <h2>

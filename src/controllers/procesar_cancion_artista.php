@@ -1,4 +1,5 @@
 <?php
+/*
 session_start();
 
 include("../config/conexion.php");
@@ -154,4 +155,5 @@ if ($stmt) {
 } else {
     die(print_r(sqlsrv_errors(), true));
 }
+    */
 ?>

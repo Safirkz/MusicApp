@@ -11,7 +11,7 @@ $artistaRepo = new ArtistaRepository($conn);
 $idArtista = 1; // ID de prueba para la sesión de artista
 
 // Cargar lista de álbumes del artista para el <select>
-$albums = $artistaRepo->obtenerAlbumsPorArtista($idArtista);
+$albums = $artistaRepo->obtenerAlbumsArtista($idArtista);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "<p style='color:green;'><b>¡Álbum creado exitosamente!</b> Portada: " . htmlspecialchars($resultado['portada']) . "</p>";
 
             // Actualizar desplegable tras crear
-            $albums = $artistaRepo->obtenerAlbumsPorArtista($idArtista);
+            $albums = $artistaRepo->obtenerAlbumsArtista($idArtista);
         }
 
         // 2. PUBLICAR CANCIÓN

@@ -3,42 +3,33 @@ session_start();
 
 // Validar que solo artistas puedan entrar aquí
 if (!isset($_SESSION['id_usuario']) || $_SESSION['id_rol'] != 3) {
-
     header("Location: ../index.php");
-
     exit();
 }
 
 include("../config/conexion.php");
+require_once __DIR__ . '/../facades/ArtistaFacade.php';
 include("../partials/header.php");
+
+$facade = new ArtistaFacade($conn);
 
 // ==========================================
 // OBTENER ARTISTA DEL USUARIO LOGUEADO
 // ==========================================
-
 $id_usuario = $_SESSION['id_usuario'];
-
-$sql = "EXEC sp_ObtenerArtistaPorUsuario ?";
-
-$params = array($id_usuario);
-
-$stmt = sqlsrv_query($conn, $sql, $params);
-
-$artista = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+$artista = $facade->obtenerArtistaPorUsuario($id_usuario);
 
 // Validar existencia
 if (!$artista) {
-
     echo "
     <div class='alert alert-danger'>
         No se encontró el perfil del artista.
     </div>
     ";
-
     include("../partials/footer.php");
-
     exit();
 }
+?>
 
 ?>
 <div class="row mb-4">
@@ -58,7 +49,7 @@ if (!$artista) {
 </div>
 <div class="card shadow-sm">
     <div class="card-body">
-        <form action="../controllers/procesar_album_artista.php" method="POST" enctype="multipart/form-data">
+        <form action="../controllers/AlbumController.php" method="POST" enctype="multipart/form-data">
             <input 
                 type="hidden"
                 name="accion"
