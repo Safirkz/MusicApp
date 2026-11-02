@@ -1,4 +1,5 @@
 <?php
+/*
 session_start();
 
 include("../config/conexion.php");
@@ -90,4 +91,5 @@ if ($_POST['accion'] == "editar_perfil") {
         die(print_r(sqlsrv_errors(), true));
     }
 }
+*/
 ?>

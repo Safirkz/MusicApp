@@ -23,13 +23,6 @@ class FileSystemHandler {
     }
 
     /**
-     * Guarda fotos en resources/img/artistas/
-     */
-    public function guardarFotoArtista(array $file) {
-        return $this->moverArchivo($file, $this->baseDir . 'img/artistas/');
-    }
-
-    /**
      * Guarda portadas en resources/img/canciones/
      */
     public function guardarPortadaCancion(array $file) {
@@ -41,6 +34,16 @@ class FileSystemHandler {
      */
     public function guardarPortadaPlaylist(array $file) {
         return $this->moverArchivo($file, $this->baseDir . 'img/playlists/');
+    }
+
+    /**
+     * Guarda fotos en resources/img/artistas/
+     */
+    public function guardarFotoArtista(?array $file) {
+        if (empty($file['name']) || empty($file['tmp_name'])) {
+            return null;
+        }
+        return $this->moverArchivo($file, $this->baseDir . 'img/artistas/');
     }
 
     /**

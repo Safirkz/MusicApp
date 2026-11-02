@@ -206,4 +206,52 @@ class ArtistaRepository {
         if ($stmt !== false) sqlsrv_free_stmt($stmt);
         return $row ?: null;
     }
+
+    // Obtener el nombre de la imagen actual para no sobrescribirlo si no se sube nada nuevo
+    public function obtenerImagenActual($idArtista) {
+        $sql = "SELECT imagen_url FROM Artista WHERE id_artista = ?";
+        $params = array((int)$idArtista);
+        $stmt = sqlsrv_query($this->conn, $sql, $params);
+
+        if ($stmt === false) {
+            throw new Exception("Error al obtener la imagen actual: " . print_r(sqlsrv_errors(), true));
+        }
+
+        $row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+        sqlsrv_free_stmt($stmt);
+
+        return $row['imagen_url'] ?? null;
+    }
+
+    public function actualizarPerfilArtista($idArtista, $nombreArtistico, $nacionalidad, $descripcion, $imagenUrl = null) {
+        // Si no se subió una foto nueva, consulta la foto actual en BD por id_artista (igual que en procesar_artista.php)
+        if ($imagenUrl === null) {
+            $sqlActual = "SELECT imagen_url FROM Artista WHERE id_artista = ?";
+            $stmtActual = sqlsrv_query($this->conn, $sqlActual, array((int)$idArtista));
+            
+            if ($stmtActual !== false) {
+                $artistaActual = sqlsrv_fetch_array($stmtActual, SQLSRV_FETCH_ASSOC);
+                $imagenUrl = $artistaActual['imagen_url'] ?? null;
+                sqlsrv_free_stmt($stmtActual);
+            }
+        }
+
+        // Ejecuta el procedimiento almacenado con los 5 parámetros
+        $sql = "EXEC sp_ActualizarPerfilArtista ?, ?, ?, ?, ?";
+        $params = array(
+            array((int)$idArtista, SQLSRV_PARAM_IN),
+            array($nombreArtistico, SQLSRV_PARAM_IN),
+            array($nacionalidad, SQLSRV_PARAM_IN),
+            array($descripcion, SQLSRV_PARAM_IN),
+            array($imagenUrl, SQLSRV_PARAM_IN)
+        );
+
+        $stmt = sqlsrv_query($this->conn, $sql, $params);
+        if ($stmt === false) {
+            throw new Exception("Error al actualizar perfil en BD: " . print_r(sqlsrv_errors(), true));
+        }
+
+        sqlsrv_free_stmt($stmt);
+        return true;
+    }
 }

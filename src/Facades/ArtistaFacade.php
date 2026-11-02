@@ -31,6 +31,14 @@ class ArtistaFacade {
     }
 
     /**
+     * Actualiza los datos del artista
+     */
+    public function actualizarPerfilArtista($idArtista, $nombreArtistico, $nacionalidad, $descripcion, $archivoImagen = null) {
+        $fotoUrl = $this->fileHandler->guardarFotoArtista($archivoImagen);
+        return $this->artistaRepo->actualizarPerfilArtista($idArtista, $nombreArtistico, $nacionalidad, $descripcion, $fotoUrl);
+    }
+
+    /**
      * Obtiene los álbumes del artista para poblar el <select> del formulario
      */
 
