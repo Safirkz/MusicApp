@@ -1,20 +1,15 @@
 <?php
-session_start();
-
 require_once __DIR__ . '/../config/conexion.php';
 require_once __DIR__ . '/../facades/ArtistaFacade.php';
 
-// 1. Validar sesión de usuario
-if (!isset($_SESSION['id_usuario'])) {
-    header("Location: ../index.php");
-    exit();
-}
+class ArtistaController {
+    private $facade;
 
-$facade = new ArtistaFacade($conn);
+    public function __construct($conn) {
+        $this->facade = new ArtistaFacade($conn);
+    }
 
-// 2. Procesar la actualización del perfil
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'editar_perfil') {
-    try {
+    public function editarPerfil() {
         $idArtista       = $_POST['id_artista'] ?? null;
         $nombreArtistico = trim($_POST['nombre_artistico'] ?? '');
         $nacionalidad    = trim($_POST['nacionalidad'] ?? '');
@@ -25,8 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'edita
             throw new Exception("El ID del artista es obligatorio.");
         }
 
-        // Delegar todo el flujo de trabajo a la fachada
-        $facade->actualizarPerfilArtista(
+        $this->facade->actualizarPerfilArtista(
             $idArtista,
             $nombreArtistico,
             $nacionalidad,
@@ -34,11 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'edita
             $archivoImagen
         );
 
-        // Redirección idéntica a la vista original
         header("Location: ../views/artista_gestion_catalogo.php?msg=perfil_actualizado");
         exit();
-
-    } catch (Exception $e) {
-        die("Error al procesar la solicitud: " . $e->getMessage());
     }
 }

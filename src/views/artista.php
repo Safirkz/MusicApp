@@ -32,17 +32,6 @@ include("../partials/header.php");
             </div>
         </div>
     </div>
-    
-    <div class="col-md-6 mb-4">
-        <div class="card border-secondary h-100 shadow-sm">
-            <div class="card-header bg-secondary text-white">Estadísticas</div>
-            <div class="card-body">
-                <h5 class="card-title">Rendimiento</h5>
-                <p class="card-text">Revisa cuántas reproducciones y likes han obtenido tus canciones este mes.</p>
-                <a href="#" class="btn btn-secondary text-white">Ver Estadísticas</a>
-            </div>
-        </div>
-    </div>
 </div>
 
 <?php

@@ -1,67 +1,55 @@
 <?php
-session_start();
-
 require_once __DIR__ . '/../config/conexion.php';
 require_once __DIR__ . '/../facades/ArtistaFacade.php';
 
-// Validar sesión
-if (!isset($_SESSION['id_usuario'])) {
-    header("Location: ../index.php");
-    exit();
-}
+class CancionController {
+    private $facade;
 
-$facade = new ArtistaFacade($conn);
-$accion = $_POST['accion'] ?? null;
+    public function __construct($conn) {
+        $this->facade = new ArtistaFacade($conn);
+    }
 
-// ==========================================
-// ACCIONES DE GESTIÓN (Inactivar, Activar, Eliminar)
-// ==========================================
-if (in_array($accion, ['inactivar', 'activar', 'eliminar'])) {
-    try {
-        $idCancion = $_POST['id_cancion'];
+    public function procesar(string $accion) {
+        // Acciones de Gestión: inactivar, activar, eliminar
+        if (in_array($accion, ['inactivar', 'activar', 'eliminar', 'eliminar_cancion', 'cambiar_estado_cancion'])) {
+            $idCancion = $_POST['id_cancion'] ?? $_GET['id_cancion'] ?? null;
 
-        if ($accion === 'inactivar') {
-            $facade->inactivarCancion($idCancion);
-        } elseif ($accion === 'activar') {
-            $facade->activarCancion($idCancion);
-        } elseif ($accion === 'eliminar') {
-            $facade->eliminarCancion($idCancion);
+            if (!$idCancion) {
+                throw new Exception("ID de canción no especificado.");
+            }
+
+            if ($accion === 'inactivar') {
+                $this->facade->cambiarEstadoCancion($idCancion, 0);
+            } elseif ($accion === 'activar') {
+                $this->facade->cambiarEstadoCancion($idCancion, 1);
+            } elseif ($accion === 'eliminar' || $accion === 'eliminar_cancion') {
+                $this->facade->eliminarCancion($idCancion);
+            }
+
+            header("Location: ../views/artista_gestion_catalogo.php");
+            exit();
         }
 
-        header("Location: ../views/artista_gestion_catalogo.php");
-        exit();
+        // Crear Canción
+        $idAlbum = !empty($_POST['id_album']) ? $_POST['id_album'] : null;
 
-    } catch (Exception $e) {
-        die("Error en gestión de canción: " . $e->getMessage());
-    }
-}
+        $this->facade->publicarCancion(
+            [
+                'titulo'     => trim($_POST['titulo'] ?? ''),
+                'duracion'   => $_POST['duracion'] ?? '',
+                'id_album'   => $idAlbum,
+                'id_artista' => $_POST['id_artista'] ?? null
+            ],
+            $_FILES['audio'] ?? [],
+            $_FILES['imagen'] ?? null
+        );
 
-// ==========================================
-// CREAR CANCIÓN
-// ==========================================
-try {
-    $idAlbum = !empty($_POST['id_album']) ? $_POST['id_album'] : null;
+        if ($idAlbum) {
+            header("Location: ../views/artista_album.php?id=" . $idAlbum);
+            exit();
+        }
 
-    $facade->publicarCancion(
-        [
-            'titulo'     => trim($_POST['titulo']),
-            'duracion'   => $_POST['duracion'],
-            'id_album'   => $idAlbum,
-            'id_artista' => $_POST['id_artista']
-        ],
-        $_FILES['audio'],
-        $_FILES['imagen'] ?? null
-    );
-
-    // Redirecciones idénticas al flujo original
-    if ($idAlbum) {
-        header("Location: ../views/artista_album.php?id=" . $idAlbum);
+        header("Location: ../views/artista_gestion_catalogo.php?msg=cancion_creada");
         exit();
     }
-
-    header("Location: ../views/artista_gestion_catalogo.php?msg=cancion_creada");
-    exit();
-
-} catch (Exception $e) {
-    die("Error al crear canción: " . $e->getMessage());
 }

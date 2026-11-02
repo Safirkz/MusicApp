@@ -106,7 +106,7 @@ $canciones = $facade->obtenerCancionesAlbum($id_album);
                     <a href="artista_subir_cancion.php?id_album=<?php echo $album['id_album']; ?>" class="btn btn-primary">
                         Subir Canción
                     </a>
-                    <form action="../controllers/AlbumController.php" method="POST">
+                    <form action="../gateway/ArtistaGateway.php" method="POST">
                         <input
                             type="hidden"
                             name="id_album"

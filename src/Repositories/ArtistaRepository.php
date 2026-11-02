@@ -140,9 +140,14 @@ class ArtistaRepository {
     /**
      * Lista todos los álbumes de tipo 'album' y activos pertenecientes al artista.
      */
-    public function obtenerAlbumesArtista($idArtista) {
-        $sql = "EXEC sp_ObtenerAlbumesArtista ?";
-        $stmt = sqlsrv_query($this->conn, $sql, array((int)$idArtista));
+    public function obtenerAlbumesArtista($idArtista, $soloActivos = false) {
+        $sql = "EXEC sp_ObtenerAlbumesArtista ?, ?";
+        $params = array(
+            (int)$idArtista,
+            $soloActivos ? 1 : 0
+        );
+        
+        $stmt = sqlsrv_query($this->conn, $sql, $params);
         $items = array();
         if ($stmt !== false) {
             while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {

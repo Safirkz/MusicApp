@@ -156,7 +156,7 @@ if ($cancion['id_artista'] != $artista['id_artista']) {
                     <?php if ($cancion['activo'] == 1) { ?>
                         <!-- Inactivar -->
                         <form
-                            action="../controllers/CancionController.php"
+                            action="../gateway/ArtistaGateway.php"
                             method="POST"
                             class="d-inline">
                             <input
@@ -179,7 +179,7 @@ if ($cancion['id_artista'] != $artista['id_artista']) {
 
                         <!-- Activar -->
                         <form
-                            action="../controllers/CancionController.php"
+                            action="../gateway/ArtistaGateway.php"
                             method="POST"
                             class="d-inline">
                             <input
@@ -200,7 +200,7 @@ if ($cancion['id_artista'] != $artista['id_artista']) {
 
                     <!-- Eliminar -->
                     <form
-                        action="../controllers/CancionController.php"
+                        action="../gateway/ArtistaGateway.php"
                         method="POST"
                         class="d-inline">
                         <input

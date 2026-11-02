@@ -49,7 +49,7 @@ if (!$artista) {
 </div>
 <div class="card shadow-sm">
     <div class="card-body">
-        <form action="../controllers/AlbumController.php" method="POST" enctype="multipart/form-data">
+        <form action="../gateway/ArtistaGateway.php" method="POST" enctype="multipart/form-data">
             <input 
                 type="hidden"
                 name="accion"

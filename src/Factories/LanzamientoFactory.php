@@ -17,10 +17,12 @@ class LanzamientoFactory {
     public function crearLanzamiento(string $tipo) {
         switch (strtolower(trim($tipo))) {
             case 'album':
-                return new PublicarAlbum($this->artistaRepo, $this->fileHandler);
+                // CORREGIDO: Se invierten los argumentos para coincidir con PublicacionTemplate
+                return new PublicarAlbum($this->fileHandler, $this->artistaRepo);
             case 'sencillo':
             case 'cancion':
-                return new PublicarSencillo($this->artistaRepo, $this->fileHandler);
+                // CORREGIDO: Se invierten los argumentos para coincidir con PublicacionTemplate
+                return new PublicarSencillo($this->fileHandler, $this->artistaRepo);
             default:
                 throw new Exception("Tipo de lanzamiento no válido: '{$tipo}'");
         }
